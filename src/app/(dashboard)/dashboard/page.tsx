@@ -51,9 +51,17 @@ export default async function DashboardPage() {
             {d.netWorthTrend.length > 1 ? (
               <NetWorthChart data={d.netWorthTrend} />
             ) : (
-              <p className="py-16 text-center text-sm text-muted-foreground">
-                Snapshots build up over time as you add accounts and assets.
-              </p>
+              <div className="flex flex-col items-center justify-center py-14 text-center">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Current net worth
+                </p>
+                <p className={`mt-1 text-3xl font-bold tracking-tight ${b.netWorth >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-destructive"}`}>
+                  {formatCurrency(b.netWorth)}
+                </p>
+                <p className="mt-3 max-w-xs text-sm text-muted-foreground">
+                  Your trend line appears here once there&apos;s more than one day of history. It builds automatically as your finances change.
+                </p>
+              </div>
             )}
           </CardContent>
         </Card>

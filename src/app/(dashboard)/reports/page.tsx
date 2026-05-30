@@ -5,6 +5,7 @@ import {
   categorySpending,
   netWorthTrend,
 } from "@/server/services/analytics.service";
+import { computeNetWorth } from "@/server/services/networth.service";
 import { startOfMonth } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils";
 import { PageHeader } from "@/components/shared/page-header";
@@ -26,10 +27,11 @@ export default async function ReportsPage() {
   const now = new Date();
   const yearStart = new Date(now.getFullYear(), 0, 1);
 
-  const [ivse, categories, trend] = await Promise.all([
+  const [ivse, categories, trend, breakdown] = await Promise.all([
     incomeVsExpenseByMonth(userId, 12),
     categorySpending(userId, startOfMonth(new Date(now.getFullYear(), now.getMonth() - 5, 1)), now),
     netWorthTrend(userId),
+    computeNetWorth(userId),
   ]);
 
   const totalIncome = ivse.reduce((s, m) => s + m.income, 0);
@@ -81,7 +83,15 @@ export default async function ReportsPage() {
             {trend.length > 1 ? (
               <NetWorthHistoryChart data={trend} />
             ) : (
-              <EmptyState icon={BarChart3} title="Not enough snapshots yet" description="Snapshots accumulate over time. Reset to rebaseline from today." />
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Current net worth</p>
+                <p className={`mt-1 text-2xl font-bold ${breakdown.netWorth >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-destructive"}`}>
+                  {formatCurrency(breakdown.netWorth)}
+                </p>
+                <p className="mt-2 max-w-xs text-sm text-muted-foreground">
+                  History starts from today and fills in as days pass.
+                </p>
+              </div>
             )}
           </CardContent>
         </Card>
