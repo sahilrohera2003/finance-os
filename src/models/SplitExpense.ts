@@ -14,6 +14,7 @@ const ParticipantSchema = new Schema(
 const SplitExpenseSchema = new Schema(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
+    groupId: { type: Schema.Types.ObjectId, ref: "SplitGroup", default: null, index: true },
     description: { type: String, required: true, trim: true },
     totalAmount: { type: Number, required: true, min: 0 },
     // Who actually paid the bill. "Me" means the user paid.

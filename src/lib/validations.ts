@@ -166,10 +166,17 @@ export const splitParticipantSchema = z.object({
   amount: z.coerce.number().min(0),
 });
 
+export const splitGroupSchema = z.object({
+  name: z.string().min(1, "Group name is required").max(80),
+  members: z.array(z.string().trim().min(1).max(60)).default([]),
+  notes: z.string().max(300).optional().default(""),
+});
+
 export const splitExpenseSchema = z
   .object({
     description: z.string().min(1, "Description is required").max(120),
     totalAmount: z.coerce.number().positive("Amount must be greater than 0"),
+    groupId: optionalObjectId,
     paidBy: z.string().min(1).max(60).default("Me"),
     splitMethod: z.enum(["EQUAL", "EXACT", "PERCENT", "SHARES"]).default("EQUAL"),
     participants: z.array(splitParticipantSchema).min(2, "Add at least two people"),
@@ -196,10 +203,12 @@ export const settlementSchema = z.object({
   direction: z.enum(["I_RECEIVED", "I_PAID"]),
   amount: z.coerce.number().positive(),
   accountId: optionalObjectId,
+  groupId: optionalObjectId,
   date: z.coerce.date().default(() => new Date()),
   note: z.string().max(200).optional().default(""),
 });
 
+export type SplitGroupInput = z.infer<typeof splitGroupSchema>;
 export type SplitExpenseInput = z.infer<typeof splitExpenseSchema>;
 export type SettlementInput = z.infer<typeof settlementSchema>;
 

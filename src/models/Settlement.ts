@@ -5,6 +5,7 @@ export const SETTLEMENT_DIRECTIONS = ["I_RECEIVED", "I_PAID"] as const;
 const SettlementSchema = new Schema(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
+    groupId: { type: Schema.Types.ObjectId, ref: "SplitGroup", default: null, index: true },
     contactName: { type: String, required: true, trim: true },
     // I_RECEIVED = the contact paid me back; I_PAID = I paid the contact.
     direction: { type: String, enum: SETTLEMENT_DIRECTIONS, required: true },
