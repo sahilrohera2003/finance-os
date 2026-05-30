@@ -9,6 +9,7 @@ import { startOfMonth } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
+import { ResetHistoryButton } from "@/components/shared/reset-history-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   IncomeExpenseBar,
@@ -72,12 +73,15 @@ export default async function ReportsPage() {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle>Net Worth History</CardTitle></CardHeader>
+          <CardHeader className="flex-row items-center justify-between space-y-0">
+            <CardTitle>Net Worth History</CardTitle>
+            <ResetHistoryButton />
+          </CardHeader>
           <CardContent>
             {trend.length > 1 ? (
               <NetWorthHistoryChart data={trend} />
             ) : (
-              <EmptyState icon={BarChart3} title="Not enough snapshots yet" description="Snapshots accumulate as your finances change." />
+              <EmptyState icon={BarChart3} title="Not enough snapshots yet" description="Snapshots accumulate over time. Reset to rebaseline from today." />
             )}
           </CardContent>
         </Card>

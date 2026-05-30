@@ -95,3 +95,11 @@ export async function listSnapshots(userId: string, limit = 365) {
     .limit(limit)
     .lean();
 }
+
+/** Wipe all historical snapshots and rebaseline from current live figures. */
+export async function resetSnapshots(userId: string) {
+  await connectDB();
+  await NetWorthSnapshot.deleteMany({ userId });
+  await createSnapshot(userId);
+  return { ok: true };
+}
