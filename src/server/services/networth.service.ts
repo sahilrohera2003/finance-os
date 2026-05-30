@@ -61,19 +61,34 @@ export async function computeNetWorth(userId: string): Promise<NetWorthBreakdown
   };
 }
 
-/** Persist a point-in-time snapshot of net worth. */
+/** Persist a snapshot of net worth — at most one per calendar day (upsert). */
 export async function createSnapshot(userId: string) {
   const b = await computeNetWorth(userId);
-  return NetWorthSnapshot.create({
-    userId,
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+  const fields = {
     assetValue: b.totalAssets,
     liabilityValue: b.totalLiabilities,
     netWorth: b.netWorth,
-    snapshotDate: new Date(),
+    snapshotDate: now,
+  };
+
+  // Replace today's snapshot if one already exists, otherwise insert.
+  const existing = await NetWorthSnapshot.findOne({
+    userId,
+    snapshotDate: { $gte: start, $lte: end },
   });
+  if (existing) {
+    Object.assign(existing, fields);
+    await existing.save();
+    return existing;
+  }
+  return NetWorthSnapshot.create({ userId, ...fields });
 }
 
-export async function listSnapshots(userId: string, limit = 24) {
+export async function listSnapshots(userId: string, limit = 365) {
   await connectDB();
   return NetWorthSnapshot.find({ userId })
     .sort({ snapshotDate: 1 })

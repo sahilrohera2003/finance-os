@@ -106,13 +106,44 @@ export async function categorySpending(userId: string, from: Date, to: Date) {
 }
 
 export async function netWorthTrend(userId: string) {
-  const snapshots = await listSnapshots(userId);
-  return snapshots.map((s: any) => ({
-    date: new Date(s.snapshotDate).toLocaleString("en-IN", { month: "short", year: "2-digit" }),
-    netWorth: s.netWorth,
-    assets: s.assetValue,
-    liabilities: s.liabilityValue,
-  }));
+  // Collapse to one point per calendar day (latest wins) and always overlay
+  // today's LIVE value so the chart reconciles with the dashboard numbers.
+  const [snapshots, breakdown] = await Promise.all([
+    listSnapshots(userId, 365),
+    computeNetWorth(userId),
+  ]);
+
+  const dayKey = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+  const byDay = new Map<string, { date: Date; assets: number; liabilities: number; netWorth: number }>();
+  for (const s of snapshots as any[]) {
+    const d = new Date(s.snapshotDate);
+    byDay.set(dayKey(d), {
+      date: d,
+      assets: s.assetValue,
+      liabilities: s.liabilityValue,
+      netWorth: s.netWorth,
+    });
+  }
+
+  // Today's live figures take precedence over any stored snapshot for today.
+  const today = new Date();
+  byDay.set(dayKey(today), {
+    date: today,
+    assets: breakdown.totalAssets,
+    liabilities: breakdown.totalLiabilities,
+    netWorth: breakdown.netWorth,
+  });
+
+  return Array.from(byDay.values())
+    .sort((a, b) => a.date.getTime() - b.date.getTime())
+    .map((e) => ({
+      date: e.date.toLocaleString("en-IN", { day: "2-digit", month: "short" }),
+      netWorth: e.netWorth,
+      assets: e.assets,
+      liabilities: e.liabilities,
+    }));
 }
 
 /** Aggregated dashboard payload. */
