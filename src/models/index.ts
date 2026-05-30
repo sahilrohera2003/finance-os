@@ -12,3 +12,5 @@ export { Loan } from "./Loan";
 export { MonthlyObligation } from "./MonthlyObligation";
 export { Asset } from "./Asset";
 export { NetWorthSnapshot } from "./NetWorthSnapshot";
+export { SplitExpense } from "./SplitExpense";
+export { Settlement } from "./Settlement";

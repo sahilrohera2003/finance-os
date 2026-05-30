@@ -159,6 +159,50 @@ export const assetSchema = z.object({
   notes: z.string().max(500).optional().default(""),
 });
 
+/* ----------------------------- Split Expense / Settlement ----------------------------- */
+
+export const splitParticipantSchema = z.object({
+  name: z.string().min(1, "Name required").max(60),
+  amount: z.coerce.number().min(0),
+});
+
+export const splitExpenseSchema = z
+  .object({
+    description: z.string().min(1, "Description is required").max(120),
+    totalAmount: z.coerce.number().positive("Amount must be greater than 0"),
+    paidBy: z.string().min(1).max(60).default("Me"),
+    splitMethod: z.enum(["EQUAL", "EXACT", "PERCENT", "SHARES"]).default("EQUAL"),
+    participants: z.array(splitParticipantSchema).min(2, "Add at least two people"),
+    date: z.coerce.date().default(() => new Date()),
+    notes: z.string().max(300).optional().default(""),
+  })
+  .superRefine((d, ctx) => {
+    const sum = d.participants.reduce((s, p) => s + p.amount, 0);
+    if (Math.abs(sum - d.totalAmount) > 0.5) {
+      ctx.addIssue({
+        code: "custom",
+        message: `Shares (${sum.toFixed(2)}) must add up to the total (${d.totalAmount.toFixed(2)}).`,
+        path: ["participants"],
+      });
+    }
+    const names = d.participants.map((p) => p.name.trim().toLowerCase());
+    if (new Set(names).size !== names.length) {
+      ctx.addIssue({ code: "custom", message: "Duplicate participant names.", path: ["participants"] });
+    }
+  });
+
+export const settlementSchema = z.object({
+  contactName: z.string().min(1, "Contact required").max(60),
+  direction: z.enum(["I_RECEIVED", "I_PAID"]),
+  amount: z.coerce.number().positive(),
+  accountId: optionalObjectId,
+  date: z.coerce.date().default(() => new Date()),
+  note: z.string().max(200).optional().default(""),
+});
+
+export type SplitExpenseInput = z.infer<typeof splitExpenseSchema>;
+export type SettlementInput = z.infer<typeof settlementSchema>;
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type AccountInput = z.infer<typeof accountSchema>;
 export type TransactionInput = z.infer<typeof transactionSchema>;

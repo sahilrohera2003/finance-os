@@ -38,8 +38,8 @@ export default async function DashboardPage() {
         <StatCard label="Total Assets" value={formatCurrency(b.totalAssets)} icon={TrendingUp} tone="positive" />
         <StatCard label="Total Liabilities" value={formatCurrency(b.totalLiabilities)} icon={TrendingDown} tone="negative" />
         <StatCard label="Monthly Obligations" value={formatCurrency(d.monthlyObligationsTotal)} icon={CalendarClock} />
-        <StatCard label="Collectables" value={formatCurrency(b.receivablesTotal)} icon={HandCoins} />
-        <StatCard label="Payables" value={formatCurrency(b.payablesTotal)} icon={ReceiptText} />
+        <StatCard label="Collectables" value={formatCurrency(b.receivablesTotal + b.splitToCollect)} icon={HandCoins} hint={b.splitToCollect ? `incl. ${formatCurrency(b.splitToCollect)} from splits` : undefined} />
+        <StatCard label="Payables" value={formatCurrency(b.payablesTotal + b.splitToPay)} icon={ReceiptText} hint={b.splitToPay ? `incl. ${formatCurrency(b.splitToPay)} from splits` : undefined} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">

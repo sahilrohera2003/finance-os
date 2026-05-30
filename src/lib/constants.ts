@@ -42,6 +42,7 @@ export const NAV_ITEMS = [
   { href: "/transactions", label: "Transactions", icon: "ArrowLeftRight" },
   { href: "/receivables", label: "Receivables", icon: "HandCoins" },
   { href: "/payables", label: "Payables", icon: "ReceiptText" },
+  { href: "/splits", label: "Splits", icon: "Users" },
   { href: "/loans", label: "Loans", icon: "Landmark" },
   { href: "/obligations", label: "Obligations", icon: "CalendarClock" },
   { href: "/assets", label: "Assets", icon: "Gem" },

@@ -6,14 +6,17 @@ import { Receivable } from "@/models/Receivable";
 import { Payable } from "@/models/Payable";
 import { Loan } from "@/models/Loan";
 import { NetWorthSnapshot } from "@/models/NetWorthSnapshot";
+import { computeSplitTotals } from "./split.service";
 
 export interface NetWorthBreakdown {
   accountsTotal: number;
   assetsTotal: number;
   receivablesTotal: number;
+  splitToCollect: number;
   totalAssets: number;
   loansTotal: number;
   payablesTotal: number;
+  splitToPay: number;
   totalLiabilities: number;
   netWorth: number;
 }
@@ -31,25 +34,28 @@ export async function computeNetWorth(userId: string): Promise<NetWorthBreakdown
   await connectDB();
   const uid = new Types.ObjectId(userId);
 
-  const [accountsTotal, assetsTotal, receivablesTotal, loansTotal, payablesTotal] =
+  const [accountsTotal, assetsTotal, receivablesTotal, loansTotal, payablesTotal, splits] =
     await Promise.all([
       sum(Account, { userId: uid }, "currentBalance"),
       sum(Asset, { userId: uid }, "currentValue"),
       sum(Receivable, { userId: uid, status: "PENDING" }, "amount"),
       sum(Loan, { userId: uid, status: "ACTIVE" }, "outstandingAmount"),
       sum(Payable, { userId: uid, status: "PENDING" }, "amount"),
+      computeSplitTotals(userId),
     ]);
 
-  const totalAssets = accountsTotal + assetsTotal + receivablesTotal;
-  const totalLiabilities = loansTotal + payablesTotal;
+  const totalAssets = accountsTotal + assetsTotal + receivablesTotal + splits.toCollect;
+  const totalLiabilities = loansTotal + payablesTotal + splits.toPay;
 
   return {
     accountsTotal,
     assetsTotal,
     receivablesTotal,
+    splitToCollect: splits.toCollect,
     totalAssets,
     loansTotal,
     payablesTotal,
+    splitToPay: splits.toPay,
     totalLiabilities,
     netWorth: totalAssets - totalLiabilities,
   };
